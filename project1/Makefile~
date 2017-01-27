@@ -1,0 +1,13 @@
+
+Client and Server: client server
+
+client:	client.c
+	gcc -g -o client client.c -lpthread -lmcrypt
+
+server: server.c
+	gcc -g -o server server.c -lpthread -lmcrypt
+
+dist:
+	tar -cvzf lab1b-804483463.tar.gz server.c client.c my.file Makefile README
+clean:
+	rm -rf *.o server client *.txt

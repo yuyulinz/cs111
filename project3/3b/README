@@ -1,0 +1,11 @@
+CONTENTS
+
+lab3b.py: Source file for building lab3b executable. Checks the 6 .csv files for errors. creates
+	  a file called lab3b_check.txt and outputs all of the errors to this file. Use make run
+	  to execute python file.
+
+
+
+Makfile: Makefile for building lab3b. Defauls does nothing. make dist builds the tar distributable
+	 make clean removes lab3b_check.txt. make run executes the python script. 
+	 

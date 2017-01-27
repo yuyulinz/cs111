@@ -1,0 +1,8 @@
+lab1a: lab1a.o
+	gcc -g -Wall -o lab1a lab1a.o -lpthread
+lab1a.o: lab1a.c
+	gcc -c -Wall lab1a.c -lpthread
+dist:
+	tar -cvzf lab1a-804483463.tar.gz lab1a.c Makefile README
+clean:
+	rm -rf *.o lab1a

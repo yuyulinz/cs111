@@ -1,0 +1,7 @@
+lab2b:	lab2b.c
+	gcc -g -o lab2b lab2b.c SortedList.h SortedList.c -pthread
+
+dist:
+	tar -cvzf lab2b-804483463.tar.gz SortedList.h SortedList.c lab2b.c Makefile README graph1.png graph2.png
+clean:
+	rm -rf *.o lab2b

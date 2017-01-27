@@ -1,0 +1,43 @@
+CONTENTS
+
+SortedList.h:	Header File for the operations to manipulate a Sorted List. Operations include insert,
+		delete, lookup, and length.
+
+SortedList.c:	Source File for the implementations of SortedList functions.
+
+lab2b.c: Source file for building lab2b executable. This program creates a number of threads each of
+	 which adds an element to a common list, checks the size of the list, then looks up and deletes
+	 the elements it added. Use --threads=# and --iterations=# to control how many threads and
+	 how many iterations. Use --sync=[ms] to add locks. Lock types include s for spin-lock,
+	 m for mutex. Default is n which is no lock. Use --yield=[isd] to enable yielding in insert,
+	 search, and delete respectfully. With no yielding and no protection, it takes about 3 threads
+	 and 100 iterations to consistantly demonstrate a problem such as a incorrect number of elements
+	 in the list or a segmentation fault. With no protection, conflicts were able to be found for
+	 --yield=i, --yield=d, --yield=is, --yield=ds. By using protections --sync=m and --sync=s, no
+	 conflicts were found at all, even at high numbers of threads and iterations. The highest
+	 tested for each case was 10 threads and 5000 iterations.
+
+Makefile: Makefile for building lab2b. Default builds lab2b. make dist builds the tar distributable.
+	  make clean removes exectable and all object files.
+
+graph1.png: Picture of graph of average cost per operation as a function of iterations.
+
+graph2.png: Picture of graph of average cost per operation as a function of thread. Values shown
+	    for unprotected, spin, and mutex options. Unprotected was only ran for 1 thread, its
+	    value is 2826 ns which is hard to see on the graph.
+
+
+
+QUESTIONS
+
+2B.1A:	The Graph first decreases with the number of threads, and the increases later on. This is
+	due to the fact that when thread number is low, the overhead due to creating the threads
+	makes the time oper operation high. As the number of thread increases, the overhead becomes
+	less of an factor which causes the time per operation to drop. But then the time per
+	operation increases because the performance is linearly related to the number of threads
+	which means the time per operation will then increase dramatically.
+
+2b.1b:	To correct this, we divide the time by number of operations.
+
+2B.2A:	SortedList has a much bigger critical section so this leads to a longer time for the lock
+	to be held. There is a higher chance of conflict and therefore more blocking ensures.

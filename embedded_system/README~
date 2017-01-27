@@ -1,0 +1,37 @@
+Lab-SecA-Q2: The first line of output describes the current settings for output to the server. The rate is set to 3 seconds with
+	     the range 4. The next line is the message of the IP address and heart rate of the patient. The last line describes
+	     the message recieved by the server which should be the repeated message from the client. UDP does not take into
+	     account collisions, data loss, flow control, or error correction. It is only concerned with speed.
+
+Lab-SecA-Q4: UDP implementations of servers are usually characterized by lost packets and no reliability checking. We can see
+	     the message in the snooping which means there is no encryption or security mechanism. The same messages are received
+	     the client.
+
+Lab-SecA-Q5: The rate was changed from 3 to 1 which caused the messages to be sent and recieved as much as 3 times faster than
+	     the original speed.
+
+Lab-SecA-Q6: The TLS client displayed a new rate of 15 from the server. Even though there was a new rate displayed, and that the
+	     attack was sent, the messages still lined up and the program displayed the input and output correctly. Communication
+	     was not hindered.
+
+Lab-SecB-Q3: The TLS client sends a hearbeat to the server and the server sends back an acknowlegdement that it recieved its message.
+	     The output is in the same formate as in the screenshot from Lab-B-1 from using the UDP server.
+
+Lab-SecB-Q5: The data snooped here from wireshark is not readable becasue TLS implements encryption in its connection. This is
+	     differenct from the UDP server where the data is completely readable.
+
+Lab-SecB-Q6: The rate of send/recieve is initially 3 and the messages are perfectly aligned. When we changed the rate to 1, we
+	     see that the messages are no longer aligned. This is because changing the rate sets up a new connection due to
+	     the nature of TLS, and because there more security measures in the backgroud running, the messages become delayed by
+	     one message and the messages are then no longer aligned. The output is thus wrong.
+
+Lab-SecB-Q7: After the attack the messages are misaligned. The messages are off by one message. Again, setting a new rate establishes
+	     a new connection and because the tls client writes the new message from the socket to the output, the messages are then
+	     misaligned by one message.
+
+Lab4-SecC-Q4: When the rate is changed, our program adjusts the change correctly and outputs the messages in the right order.
+	      The writes and reads are now processed in different threads which takes into account the simultaneous reading
+	      and writing. The multithreaded implementation allows the message to be outputted immediately without waiting
+	      for a read.
+
+Lab4-SecC-Q6: Output for the log file logged during tls execution.

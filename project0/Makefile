@@ -1,0 +1,15 @@
+lab0: lab0.o
+	gcc -g -Wall -o lab0 lab0.o
+
+lab0.o: lab0.c
+	gcc -c -Wall lab0.c
+
+check:
+	echo hello > test
+	./lab0 --input=test --output=test2
+	diff test test2 && ([ $$? -eq 0 ] && echo "Correctly implements input output arguments")
+clean:
+	rm -rf lab0.o lab0 test*
+
+dist:
+	tar -cvzf lab0-804483463.tar.gz lab0.c Makefile README *.JPG 

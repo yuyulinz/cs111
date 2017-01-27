@@ -1,0 +1,25 @@
+Project 1
+
+
+lab1a.c:
+
+	This is the source file to make the lab1a executable. For the sections that
+	puts the console into non-canonical input mode with no esho, code was
+	borrowed and modified from:
+
+	> http://www.gnu.org/software/libc/manual/html_node/Noncanon-Example.html
+
+	Other sources of help was taken from the following links
+
+	>https://hackintoshrao.com/tag/wifexited-and-wifsignaled-macros/
+	>https://www.youtube.com/watch?v=n9IT5RAludA
+
+Makefile:
+
+	This makefile builds the lab1a.c into the executable lab1a.
+
+	Make clean will remove all object files and the executable lab1a
+
+	Make dist will create a tarball names lab1a-804483463.tar.gz containing
+	the c source file, the Makefile, and this README file.
+	

@@ -1,0 +1,79 @@
+CONTENTS
+
+lab2a.c: Source file for building lab2a executable. This program creates a number of threads each of
+	 which adds 1 and adds -1 to count a certain number of times. use --threads=# and --iterations=#
+	 to control how many threads and how many iterations. Use --sync=<synctype> to add locks.
+	 Lock types include s for spin-lock, m for mutex, and c for compare-and-swap lock. Default
+	 is n which is no lock. Use --yield to enable yielding in each thread.
+
+Makefile: Makefile for building lab2a. Default builds lab2a. make dist builds the tar distributable.
+	  make clean removes exectable and all object files.
+
+lab2a_graph1.png: Picture of graph of average cost per operation as a function of iterations. (no yield)
+
+lab2a_graph2.png: Picture of graph of average cost per operation as a function of thread valus for
+		  all 4 types of locking. (no yield)
+
+
+
+QUESTIONS
+
+2A.1A: With no locking mechanism and no yields, I had to change the arguments to run 3 threads and 800
+       iterations before it began to consistantly output an error. It takes this many threads and
+       iterations because the more threads, the more chance of preemption at a critical point and the
+       longer each threads needs to iterate, the bigger the window a thread has to preempt another thread.
+       Adding threads dramatically increases the chance of resulting in error because this gives each thread
+       an increased chance of being preempted by another thread. It increases the amount of threads the
+       cpu must switch back forth between and thus increases the chance of inturrupting a thread at a
+       critical point.
+
+2A.1B: Smaller numbers of iterations seldom fail because each thread is able to finish before preemption
+       has a chance to interrupt. There is essentially a very small window for each thread to interrupt
+       another thread because by the time a context switch happens, the thread has already finished
+       iterating.
+
+2A.2A: The average cost per operation drops with increasing iterations because at a small number of
+       iterations, the time it takes to create the threads and execute other operations is significant
+       to the total time. This extra time is added into the average time per operations and increases
+       the average. At very large number of iterations, this extra time used to create threads becomes
+       less significant.
+
+2A.2B: There are two time variables we measure: the time to create threads and the time to execute the
+       iterations. The time to create a fix number of threads is relatively constant and the time to
+       execute the operations depends on the number of operations. To find the correct cost per
+       operation, we must subtract the time the create the fix number of threads or execute enough
+       operations such that the time spent creating the threads is negligible. However, this would
+       require a very high number of operations where a better solution would be to omit the amount
+       of time to create the threads.
+
+2A.2C: Yields are much slower because when a thread calls the yield function, it will relingquish the
+       cpu and switch to the ready state. This context switch costs lots of time and causes the overall
+       time to increase.
+
+2A.2D: All threads are created in the beginning. We cannot get valid timings using yield because
+       the when each thread yields, the timer is still running and the gettime function does not
+       account for the fact that the thread has yielded. Thus the recorded time will be much bigger
+       than the actual time.
+
+2A.3A: All of the options perform similarly for low number of threads because there are less threads
+       to switch back and forth between locks and thus less spinning and waiting for locks. There are
+       less threads to intersect each other and cause problems. Because there are less context switching,
+       the exclusion mechanisms aparent in the protecting options are less used and therefore the
+       behavior is like the default option. As the number of threads increase, the options with
+       locking becomes more dependent on the exclusion mechanisms an therefore the performance of
+       each skew away from each other.
+
+2A.3B: The three protected options "protect" the critical sections which means they force the threads
+       to execute the critical sections one at a time. However, the option with no protection allows
+       each thread to execute as they please which is fast and has no waiting. When we add more threads
+       to the protected options, they can only execute the critical section one at a time so this adds
+       more total time for all the threads since they all start at once. Each thread must wait for
+       previous threads to finish executing the critical section before executing.
+
+2A.3C: Spin locks are expensive for large numbers of threads because they cause the thread to spin and
+       essentially waste clock cycles spinning. Little number of threads running a spin lock is actually
+       effective since most likely while one thread is spinning, the other thread can finish and the
+       spinning thread can begin executing, thus no clock cycle is wasted. However, for large numbers of
+       threads, they cannot share the CPU all at once so some would have to waste time spinning and
+       thus it becomes extremely inefficient. This is essentially the convoy effect where multiple
+       threads must wait for a single thread to finish.

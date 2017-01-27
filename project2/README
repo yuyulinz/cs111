@@ -1,0 +1,100 @@
+CONTENTS
+
+SortedList.h:	Header File for the operations to manipulate a Sorted List. Operations include insert,
+		delete, lookup, and length.
+
+SortedList.c:	Source File for the implementations of SortedList functions.
+
+lab2c.c: Source file for building lab2c executable. This program creates a number of threads each of
+	 which adds an element to a common list, checks the size of the list, then looks up and deletes
+	 the elements it added. Use --threads=# and --iterations=# to control how many threads and
+	 how many iterations. Use --sync=[ms] to add locks. Lock types include s for spin-lock,
+	 m for mutex. Default is n which is no lock. Use --yield=[isd] to enable yielding in insert,
+	 search, and delete respectfully. Use --lists=# to split the main list into # number of sublists
+	 each with its own mutex.
+
+Makefile: Makefile for building lab2c. Default builds lab2c. make dist builds the tar distributable.
+	  make clean removes exectable and all object files.
+
+lab2c-graph1.png: Picture of graph of average cost per operation as a function of Thread to List Ratio. 
+
+
+
+GPROF PERFORMANCE ANALYSIS
+
+1. unprotected single list, 5000-10000 iterations (values are given a range to representmultiple tests between iterations)
+
+   Percent of time spent   number of calls	time spent per call	function
+   50-75      	   	   5000-10000  		6.0 us - 20 us      	SortedList_lookup
+   25-50		   5000-10000		6.0 us - 7.0 us		SortedList_insert
+   0.00			   5000-10000		0.00 			SortedList_delete
+   0.00			   2			0.00			SortedList_length
+
+   Most of the time spent here is either in the lookup or insert function.
+
+2. mutex synchronization, 5 threads, 10000 iterations, 1-20 list values
+
+   Percent of time spent  number of calls	time spent per call	function
+   60	      	   	  45000-50000  		15-209 us      		SortedList_lookup
+   40			  48000-50000		10-143 us		SortedList_insert
+   0.00-0.47		  48000-50000		0.00 us			SortedList_delete
+   0.00-0.23		  6-30			0-385 us		SortedList_length
+
+   For this test, the more lists, the faster the program finished and the smaller the per operation time.
+   For low number of lists, there was lots of time spent on lookup and insert. But this number
+   drastically reduced as the number of lists went up. There is consistantly always more time spent in lookup.
+
+
+3. spinlock synchronization, 5 threads, 10000 iterations, 1-20 list values
+
+   Percent of time spent  number of calls	time spent per call	function
+   30-50     	   	  38000-50000  		15 us      		SortedList_lookup
+   30			  45000-50000 	        7 us			SortedList_insert
+   20-50								threadfunction
+   0.00-1.00		  42000			0.00 us			SortedList_delete
+   0.00-0.23		  70-92			0.00-300 us		SortedList_length
+
+   For lower number of lists, the spinlock spent more time spinning in the thread function but as more lists
+   were added, the time spent spinning in the thread decreased and more time was spent on the insert and lookup.
+
+
+
+QUESTIONS
+
+2C.1A:	For the Synchronized methods, as the thread vs List ratio increases, the per operation time
+	exponentially increases. With more threads, there is an higher chance of threads waiting on
+	each other at critical sections. More lists mean that the size of each list will be smaller
+	and elements are separated out. Because the insert function requires the items to be sorted,
+	adding more lists for the program to work with decreases the time it takes to insert a element
+	since we don't have to iterate through a single large list. Thus as threads increase and as
+	lists decrease, the per operation time becomes worst and worst.
+2C.1B:	For this purpose, it is more interesting to examine the threads vs list ratio because seeing
+	effects of different thread numbers at a constant list value would be essentially testing the
+	same thing as the previous lab. We want to be able to test how the relationship between threads
+	and lists interact with each other, not particularly the effect of one as the other is held
+	constant. 
+2C.2A:	When increasing the lists value, the time per operation always decreases because more lists means
+	that the size of each list will be smaller and elements are separated out. Because the insert
+	function requires the elements to be sorted, adding more lists will decrease the time it takes to
+	insert an element or lookup a key.
+2C.2B	The time per opetation for spinlock is slower for larger number of threads  because the spinlock
+	wastes time spinning and therefore increases the time per operation. The mutex will yeild a
+	thread if that thread reaches a critical section with no lock.
+2C.3A	The mutex must be held when pthread_cond_wait is called to ensure the condition we are trying to
+	wait for does not change before the wait function is called. If the condition is met before
+	the wair function is called, the wait function will never wake up thus we hold a mutex to ensure
+	other threads do not signal before a wait is called.
+2C.3B	The mutex must be released or the other threads are locked and connot perform the specified tasks
+	and signal the wait function to wake up. The mutex is held when the wait function is executed to
+	prevent the other threads from signaling. Once the wait is called, it must release the mutex to
+	so other threads may signal once again.
+2C.3C	The calling threads needs to make sure the condition is not changed once it has been woken up
+	due to a changed condition. It reholds the mutex so it can atomically check the condition again
+	and continue on guaranteeing the state of the tested condition.
+2C.3D	If the mutex release is not done inside the wait function, then after the release function and
+	before the wait function, another thread can intersect and change the condition. The wait function
+	will then be called without ever being called.
+2C.3E	The wait function needs to be implemented in kernal mode and not in user mode because there is
+	a chance for preemption between releaseing the lock and sleeping. User mode cannot guarantee
+	atomacy between this section which is dangerous if another thread intersects and changes the
+	condition and thus never wakes up the calling thread if it goes to sleep.

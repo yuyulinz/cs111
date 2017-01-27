@@ -1,0 +1,19 @@
+Lab 0: Warm-Up
+
+lab0.c - Source file. Takes standard input and outputs to standard output.
+
+Makefile - makefile for building, quick testing, cleaning, and compressing (using dist)
+
+	 - smoke-check first creates a file "test" and writes "hello" into it. lab0 is then
+	   run changing the input to "test". The output is changed to "test2". The program
+	   will create "test2 and write the contents of "test" into it. Diff is then used
+	   to compare. If there is no difference, then smoke-test passed, else failed.
+
+backtrace - backtrace is a screenshot of gdb running lab0 --segfault and then backtrace
+	    that is taken after the segfault
+
+breakpoint - breakpoint is a screenshot of gdb running lab0 --segfault where a breakpoint
+	     is placed right before a null pointer is accessed and stored. Before this step
+	     we examined the content of the null pointer and it is indeed 0x0 which is the
+	     null pointer.
+

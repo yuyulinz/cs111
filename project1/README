@@ -1,0 +1,48 @@
+YULIN ZHANG ID:804483463
+
+server.c:
+	Source file for server executable. Establishes a socket and waits for a client to connect.
+	Upon connection, server will read from socket, send the input through a pipe into a
+	seperate process running bash, listen for input from bash, and output back into socket.
+
+	Use --port=<number> to specify port.
+	Use --encrypt to enable encription between client and server. Note --encrypt must be enabled
+	    on both server and client to work.
+
+	    Encryption uses twofish with cfb mode. Key is located in my.key file currently set as
+	    "password"
+
+client.c:
+	Source file for client executable. Connects to a server and sents data from keyboard process
+	to server. Uses anther thread to read input from server and prints to terminal.
+
+	Use --port=<number> to specify port.
+	Use --encrypt to enable encription between client and server. Note --encrypt must be enabled
+	    on both server and client to work.
+
+	    Encryption uses twofish with cfb mode. Key is located in my.key file currently set as
+	    "password"
+
+	Use --log=<filename> to record all sent and recieved data.
+
+my.file:
+	contains key for encryption. Key is "password"
+
+Makefile:
+	Makefile to build server and client.
+	Make command builds both server and client
+	make server and make client builds the respective executables.
+	make clean removes all object files, all test files, and server and client executables.
+	make dist creates the tarball to be submitted.
+
+
+
+
+
+
+Code refering to the client server model was modified from
+http://www.cs.rpi.edu/~moorthy/Courses/os98/Pgms/socket.html
+
+Code refering to encryption was modified form mcrypt(3) man page example.
+
+Code was also used from lab1a.

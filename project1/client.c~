@@ -1,0 +1,230 @@
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <termios.h>
+#include <getopt.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <string.h>
+#include <pthread.h>
+#include <mcrypt.h>
+
+struct termios saved_attributes;
+struct termios tattr;
+void *recievefunc(void *sockfd);
+int makelog = 0;
+int fd;
+
+//encryption
+MCRYPT tde;
+int encryptbit = 0;
+
+
+void
+reset_input_mode (void)
+{
+  tcsetattr (STDIN_FILENO, TCSANOW, &saved_attributes);
+}
+
+void
+set_input_mode (void)
+{
+  //struct termios tattr;
+  //  char *name;
+
+  /* Make sure stdin is a terminal. */
+  if (!isatty (STDIN_FILENO))
+    {
+      fprintf (stderr, "Not a terminal.\n");
+      exit (EXIT_FAILURE);
+    }
+
+  /* Save the terminal attributes so we can restore them later. */
+  tcgetattr (STDIN_FILENO, &saved_attributes);
+  atexit (reset_input_mode);
+
+  /* Set the funny terminal modes. */
+  tcgetattr (STDIN_FILENO, &tattr);
+  tattr.c_lflag &= ~(ICANON|ECHO); /* Clear ICANON and ECHO. */
+  tattr.c_cc[VMIN] = 1;
+  tattr.c_cc[VTIME] = 0;
+  tcsetattr (STDIN_FILENO, TCSAFLUSH, &tattr);
+}
+
+void error(char *msg)
+{
+  perror(msg);
+  exit(1);
+}
+
+int main(int argc, char *argv[])
+{
+
+  //parse function arguments
+  struct option long_options[] =
+    {
+      {"log=", required_argument, NULL, 'l'},
+      {"port=", required_argument, NULL, 'p'},
+      {"encrypt", no_argument, NULL, 'e'},
+      {0,0,0,0}
+    };
+
+  int ret = 0;
+  int port = -1;
+
+  //encryption
+  int i;
+  char *key;
+  char password[20];
+  char *IV;
+  int keysize = 16;
+  int keyfd;
+
+  while (1) {
+    ret = getopt_long(argc, argv, "", long_options, NULL);
+    if (ret == -1) break;
+    switch (ret) {
+    case 'l':              //create a log
+      {
+	makelog = 1;
+	fd = open(optarg, O_CREAT| O_RDWR | O_TRUNC, 0644);
+	if (fd == -1)
+	  {
+	    perror("Failed to create log file");
+	    exit(1);
+	  }
+	break;
+      }
+    case 'p':
+      port = atoi(optarg);
+      break;
+    case 'e':
+
+      encryptbit = 1;
+      //create key
+      key = calloc(1, keysize);
+
+      keyfd = open("my.key", O_RDWR);
+      memset(password, '\0', 20);
+      if (read(keyfd, &password, 16) < 1)
+	exit(1);
+      close(keyfd);
+      //strcpy(password, "A_large_key");///////////this should be from a file
+      memmove( key, password, strlen(password));  
+
+      //open encrypt
+      tde = mcrypt_module_open("twofish", NULL, "cfb", NULL);
+      if (tde == MCRYPT_FAILED) exit(1);
+
+      //set IV
+      IV = malloc(mcrypt_enc_get_iv_size(tde));
+
+      for( i = 0; i < mcrypt_enc_get_iv_size(tde); i++)
+	{
+	  IV[i] = 'x';
+	}
+
+      //initialize the encrypt
+      i = mcrypt_generic_init(tde, key, keysize, IV);
+      if (i<0)
+	{
+	  mcrypt_perror(i);
+	  exit(1);
+	}
+      break;
+    default:
+      {
+	printf("getopt error");
+	exit(1);
+      }
+    }
+  }
+
+  if(port == -1)
+    {
+      printf("Error: must specify port\n");
+      exit(1);
+    }
+  
+  //put into noncanonical mode
+    set_input_mode();
+
+  //connect to server
+  int sockfd, portno, n;
+  struct sockaddr_in serv_addr;
+  struct hostent *server;
+  portno = port;
+  sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  if (sockfd < 0)
+    error("ERROR opening socket");
+  server = gethostbyname("localhost");
+  if (server == NULL) {
+    fprintf(stderr,"ERROR, no such host\n");
+    exit(1);
+  }
+  memset((char *) &serv_addr, 0, sizeof(serv_addr));
+  serv_addr.sin_family = AF_INET;
+  memcpy((char *)&serv_addr.sin_addr.s_addr, (char *)server->h_addr, server->h_length);
+  serv_addr.sin_port = htons(portno);
+  if (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0)
+    error("ERROR connecting");
+
+  //read write
+
+  //thread to read from socket
+  pthread_t thread1;
+  int ret1;
+  ret1 = pthread_create(&thread1, NULL, recievefunc, (void *) &sockfd);
+
+  //send to socket
+  char buffer;
+  while(1){
+    int exitbool = 0;
+    read(STDIN_FILENO, &buffer, 1);
+    write(STDOUT_FILENO, &buffer, 1);
+    if (buffer == '\004')
+      exitbool = 1;
+    if (encryptbit == 1)
+      mcrypt_generic(tde, &buffer, 1);
+    if (makelog == 1)
+      {
+	write(fd, "SENT 1 Byte: ", 13);
+	write(fd, &buffer, 1);
+	write(fd, "\n", 1);
+      }
+    n = write(sockfd, &buffer, 1);
+    if (exitbool == 1)
+      exit(0);
+    if (n < 0) error("ERROR writing to socket");
+  }
+  return 0;
+}
+
+void *recievefunc (void *sockfd)
+{
+  char buffer[1000];
+  int n;
+  while(1)
+    {      
+      n = read(*((int *) sockfd), buffer, 999);
+      if ( n < 1 )
+	exit(1);
+      buffer[n] = '\0';
+      if (makelog == 1)
+	{
+	  int bytes = n+30;
+	  char logbuffer[bytes];
+	  bytes = sprintf(logbuffer, "RECEIVED %d bytes: %s\n", n, buffer);
+	  write(fd, logbuffer, bytes);
+	}
+      if (encryptbit == 1)
+	mdecrypt_generic(tde, &buffer, n);
+      write(STDOUT_FILENO, buffer, n);
+      
+    }
+  return NULL;
+}

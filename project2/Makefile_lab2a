@@ -1,0 +1,7 @@
+lab2a:	lab2a.c
+	gcc -g -o lab2a lab2a.c -pthread
+
+dist:
+	tar -cvzf lab2a-804483463.tar.gz lab2a.c Makefile README *.png
+clean:
+	rm -rf *.o lab2a

@@ -1,0 +1,14 @@
+CONTENTS
+
+lab3a.c: Source file for building lab3a executable. This program takes one argument
+	 disk image and creates 6 files.
+
+	 super.csv contains information from superblock
+	 group.csv contains information from group descriptor table
+	 bitmap.csv contains list of free blocks and inodes
+	 inode.csv contains information about each allocated inode
+	 direct.csv contains information about each directory
+	 indirect.csv contains informations about each indirect pointer
+
+Makfile: Makefile for building lab3a. Defauls builds lab3a. make dist builds the tar distributable
+	 make clean removes executable and all .csv objects

@@ -1,0 +1,4 @@
+lab4:
+
+dist:
+	tar -cvzf lab4-804483463.tar.gz *.png tls_client.c README
